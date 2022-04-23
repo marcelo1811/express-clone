@@ -2,7 +2,7 @@ import http from "http";
 
 export interface ServerResponse {
   status(code: number): ServerResponse;
-  send(data: string | Object): void;
+  send(data: any): void;
   error(): void;
 }
 

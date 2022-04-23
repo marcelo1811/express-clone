@@ -1,4 +1,5 @@
 import http from "http";
+import Request, { ServerRequest } from "./request";
 import Response, { ServerResponse } from "./response";
 
 enum HTTPMethodOptions {
@@ -10,19 +11,18 @@ enum HTTPMethodOptions {
 }
 
 interface HTTPMethod {
-  [path: string]: (req: http.IncomingMessage, res: ServerResponse) => any;
+  [path: string]: (req: ServerRequest, res: ServerResponse) => any;
 }
 
 type HTTPListener = {
   [key in HTTPMethodOptions]: HTTPMethod;
 };
 
+type Callback = (req: ServerRequest, res: ServerResponse) => void;
+
 interface ServerApp {
   listen(port: number, callback?: () => void): void;
-  get(
-    path: string,
-    callback: (req: http.IncomingMessage, res: ServerResponse) => void
-  ): void;
+  get(path: string, callback: Callback): void;
 }
 
 export default class App implements ServerApp {
@@ -47,38 +47,23 @@ export default class App implements ServerApp {
     this.server.listen(this.port, callback);
   }
 
-  get(
-    path: string,
-    callback: (req: http.IncomingMessage, res: ServerResponse) => void
-  ): void {
+  get(path: string, callback: Callback): void {
     this.httpListener.GET[path] = callback;
   }
-  
-  post(
-    path: string,
-    callback: (req: http.IncomingMessage, res: ServerResponse) => void
-  ): void {
+
+  post(path: string, callback: Callback): void {
     this.httpListener.POST[path] = callback;
   }
-  
-  put(
-    path: string,
-    callback: (req: http.IncomingMessage, res: ServerResponse) => void
-  ): void {
+
+  put(path: string, callback: Callback): void {
     this.httpListener.PUT[path] = callback;
   }
-  
-  patch(
-    path: string,
-    callback: (req: http.IncomingMessage, res: ServerResponse) => void
-  ): void {
+
+  patch(path: string, callback: Callback): void {
     this.httpListener.PATCH[path] = callback;
   }
-  
-  delete(
-    path: string,
-    callback: (req: http.IncomingMessage, res: ServerResponse) => void
-  ): void {
+
+  delete(path: string, callback: Callback): void {
     this.httpListener.DELETE[path] = callback;
   }
 
@@ -90,12 +75,13 @@ export default class App implements ServerApp {
       this.httpListener[req.method as unknown as HTTPMethodOptions][req.url!];
 
     const response = new Response(res);
-    
+    const request = new Request(req);
+
     if (!callback) {
       response.error();
       return;
-    };
+    }
 
-    callback(req, response);
+    callback(request, response);
   }
 }

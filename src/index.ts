@@ -2,8 +2,6 @@ import App from "./modules/app";
 
 const app = new App();
 
-const users = [];
-
 app.get("/", (req, res) => {
   res.status(200).send({
     method: "get",
