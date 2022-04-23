@@ -3,6 +3,7 @@ import http from "http";
 export interface ServerResponse {
   status(code: number): ServerResponse;
   send(data: string | Object): void;
+  error(): void;
 }
 
 type ResponseData = Object | string;
@@ -31,6 +32,13 @@ class Response implements ServerResponse {
     this.end();
   }
 
+  error(): void {
+    this.serverResponse.writeHead(500, {
+      "Content-Type": "application/json",
+    });
+    this.serverResponse.end('Internal server error');
+  }
+  
   private end(): void {
     this.serverResponse.writeHead(this.responseStatus, {
       "Content-Type": "application/json",

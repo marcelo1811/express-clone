@@ -5,6 +5,7 @@ enum HTTPMethodOptions {
   GET = "GET",
   POST = "POST",
   PUT = "PUT",
+  PATCH = "PATCH",
   DELETE = "DELETE",
 }
 
@@ -36,6 +37,7 @@ export default class App implements ServerApp {
       POST: {},
       PUT: {},
       DELETE: {},
+      PATCH: {},
     };
     this.server = http.createServer(this.requestListener.bind(this));
   }
@@ -51,6 +53,34 @@ export default class App implements ServerApp {
   ): void {
     this.httpListener.GET[path] = callback;
   }
+  
+  post(
+    path: string,
+    callback: (req: http.IncomingMessage, res: ServerResponse) => void
+  ): void {
+    this.httpListener.POST[path] = callback;
+  }
+  
+  put(
+    path: string,
+    callback: (req: http.IncomingMessage, res: ServerResponse) => void
+  ): void {
+    this.httpListener.PUT[path] = callback;
+  }
+  
+  patch(
+    path: string,
+    callback: (req: http.IncomingMessage, res: ServerResponse) => void
+  ): void {
+    this.httpListener.PATCH[path] = callback;
+  }
+  
+  delete(
+    path: string,
+    callback: (req: http.IncomingMessage, res: ServerResponse) => void
+  ): void {
+    this.httpListener.DELETE[path] = callback;
+  }
 
   private requestListener(
     req: http.IncomingMessage,
@@ -59,9 +89,13 @@ export default class App implements ServerApp {
     const callback =
       this.httpListener[req.method as unknown as HTTPMethodOptions][req.url!];
 
-    if (!callback) return;
-
     const response = new Response(res);
+    
+    if (!callback) {
+      response.error();
+      return;
+    };
+
     callback(req, response);
   }
 }
