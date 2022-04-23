@@ -16,7 +16,12 @@ type HTTPListener = {
   [key in HTTPMethodOptions]: HTTPMethod;
 }
 
-export class App {
+interface ServerApp {
+  listen(port: number, cb?: () => void): void;
+  get(path: string, callback: (req: http.IncomingMessage, res: ServerResponse) => void): void;
+}
+
+export default class App implements ServerApp {
   private port: number;
   private server: http.Server;
   private httpListener: HTTPListener;
@@ -32,7 +37,16 @@ export class App {
     this.server = http.createServer(this.doOnRequest.bind(this));
   }
 
-  doOnRequest(req: http.IncomingMessage, res: http.ServerResponse): void {
+  listen(port: number, cb?: () => void): void {
+    this.port = port ?? this.port;
+    this.server.listen(this.port, cb);    
+  }
+
+  get(path: string, cb: (req: http.IncomingMessage, res: ServerResponse) => void): void {
+    this.httpListener.GET[path] = cb;
+  }
+
+  private doOnRequest(req: http.IncomingMessage, res: http.ServerResponse): void {
     const callback = this.httpListener[req.method as unknown as HTTPMethodOptions][req.url!];
 
     if (!callback) return;
@@ -40,13 +54,4 @@ export class App {
     const response = new Response(res);
     callback(req, response);
   };
-
-  listen(port: number, cb?: () => void) {
-    this.port = port ?? this.port;
-    this.server.listen(this.port, cb);    
-  }
-
-  get(path: string, cb: (req: http.IncomingMessage, res: ServerResponse) => void) {
-    this.httpListener.GET[path] = cb;
-  }
 }
