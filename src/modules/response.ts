@@ -11,13 +11,11 @@ class Response implements ServerResponse {
   private responseStatus: number;
   private responseData: ResponseData;
 
-  constructor(
-    private serverResponse: http.ServerResponse
-  ) {
+  constructor(private serverResponse: http.ServerResponse) {
     this.responseStatus = 200;
     this.responseData = {};
   }
-  
+
   status(code: number): ServerResponse {
     this.responseStatus = code;
     return this;
@@ -25,8 +23,8 @@ class Response implements ServerResponse {
 
   send(data: ResponseData): void {
     let responseData = data;
-    if (typeof data === 'object') {
-      responseData = JSON.stringify(data)
+    if (typeof data === "object") {
+      responseData = JSON.stringify(data);
     }
 
     this.responseData = responseData;
@@ -34,7 +32,9 @@ class Response implements ServerResponse {
   }
 
   private end(): void {
-    this.serverResponse.writeHead(this.responseStatus, { 'Content-Type': 'application/json' });
+    this.serverResponse.writeHead(this.responseStatus, {
+      "Content-Type": "application/json",
+    });
     this.serverResponse.end(this.responseData);
   }
 }

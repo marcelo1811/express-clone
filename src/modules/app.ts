@@ -1,12 +1,12 @@
-import http from 'http';
-import Response, { ServerResponse } from './response';
+import http from "http";
+import Response, { ServerResponse } from "./response";
 
 enum HTTPMethodOptions {
-  GET = 'GET',
-  POST = 'POST',
-  PUT = 'PUT',
-  DELETE = 'DELETE',
-};
+  GET = "GET",
+  POST = "POST",
+  PUT = "PUT",
+  DELETE = "DELETE",
+}
 
 interface HTTPMethod {
   [path: string]: (req: http.IncomingMessage, res: ServerResponse) => any;
@@ -14,11 +14,14 @@ interface HTTPMethod {
 
 type HTTPListener = {
   [key in HTTPMethodOptions]: HTTPMethod;
-}
+};
 
 interface ServerApp {
-  listen(port: number, cb?: () => void): void;
-  get(path: string, callback: (req: http.IncomingMessage, res: ServerResponse) => void): void;
+  listen(port: number, callback?: () => void): void;
+  get(
+    path: string,
+    callback: (req: http.IncomingMessage, res: ServerResponse) => void
+  ): void;
 }
 
 export default class App implements ServerApp {
@@ -34,24 +37,31 @@ export default class App implements ServerApp {
       PUT: {},
       DELETE: {},
     };
-    this.server = http.createServer(this.doOnRequest.bind(this));
+    this.server = http.createServer(this.requestListener.bind(this));
   }
 
-  listen(port: number, cb?: () => void): void {
+  listen(port: number, callback?: () => void): void {
     this.port = port ?? this.port;
-    this.server.listen(this.port, cb);    
+    this.server.listen(this.port, callback);
   }
 
-  get(path: string, cb: (req: http.IncomingMessage, res: ServerResponse) => void): void {
-    this.httpListener.GET[path] = cb;
+  get(
+    path: string,
+    callback: (req: http.IncomingMessage, res: ServerResponse) => void
+  ): void {
+    this.httpListener.GET[path] = callback;
   }
 
-  private doOnRequest(req: http.IncomingMessage, res: http.ServerResponse): void {
-    const callback = this.httpListener[req.method as unknown as HTTPMethodOptions][req.url!];
+  private requestListener(
+    req: http.IncomingMessage,
+    res: http.ServerResponse
+  ): void {
+    const callback =
+      this.httpListener[req.method as unknown as HTTPMethodOptions][req.url!];
 
     if (!callback) return;
 
     const response = new Response(res);
     callback(req, response);
-  };
+  }
 }

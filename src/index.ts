@@ -1,13 +1,13 @@
-import App from './modules/app';
+import App from "./modules/app";
 
 const app = new App();
 
-app.get('/', (req, res) => {
+app.get("/", (req, res) => {
   res.status(200).send({
-    'name': 'marcelo',
-  })
+    name: "marcelo",
+  });
 });
 
 app.listen(3000, () => {
-  console.log('listening on port 3000');
+  console.log("listening on port 3000");
 });
