@@ -4,7 +4,7 @@ const app = new App();
 
 app.get('/', (req, res) => {
   res.status(200).send({
-    'cool': 'marcelo',
+    'name': 'marcelo',
   })
 });
 
