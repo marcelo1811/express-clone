@@ -1,7 +1,7 @@
 import http from "http";
 
 export interface ServerRequest {
-  body: string;
+  body: any;
   readDataStream: () => Promise<unknown>;
 }
 
