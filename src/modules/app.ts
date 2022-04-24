@@ -71,17 +71,20 @@ export default class App implements ServerApp {
     req: http.IncomingMessage,
     res: http.ServerResponse
   ): void {
-    const callback =
+    const response = new Response(res);
+    const requestCallback =
       this.httpListener[req.method as unknown as HTTPMethodOptions][req.url!];
 
-    const response = new Response(res);
-    const request = new Request(req);
-
-    if (!callback) {
+    if (!requestCallback) {
       response.error();
       return;
     }
 
-    callback(request, response);
+    const request = new Request(req);
+
+    request.readDataStream().then(() => {
+      requestCallback(request, response);
+      return;
+    });
   }
 }
