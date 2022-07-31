@@ -22,6 +22,12 @@ app.get("/", (req, res) => {
   });
 });
 
+app.get("/users/:userId", (req, res) => {
+  const { userId } = req.params;
+  const user = users.find((user) => user.id === Number(userId));
+  res.status(200).send(user);
+});
+
 app.get("/users", (req, res) => {
   res.status(200).send(users);
 });
