@@ -8,7 +8,7 @@ interface User {
   age: number;
 }
 
-const users: User[] = [
+let users: User[] = [
   {
     id: new Date().getTime(),
     name: "teste",
@@ -16,7 +16,7 @@ const users: User[] = [
   },
 ];
 
-app.get("/", (req, res) => {
+app.get("/", (_req, res) => {
   res.status(200).send({
     method: "express clone v1.0",
   });
@@ -28,7 +28,7 @@ app.get("/users/:userId", (req, res) => {
   res.status(200).send(user);
 });
 
-app.get("/users", (req, res) => {
+app.get("/users", (_req, res) => {
   res.status(200).send(users);
 });
 
@@ -43,22 +43,31 @@ app.post("/users", (req, res) => {
   res.status(201).send(newUser);
 });
 
-app.patch("/", (req, res) => {
-  res.status(200).send({
-    method: "patch",
+app.patch("/users/:userId", (req, res) => {
+  const { userId } = req.params;
+  const userData = req.body as Omit<User, "id">;
+
+  let updatedUser;
+  users = users.map((user) => {
+    if (user.id === Number(userId)) {
+      updatedUser = {
+        ...user,
+        ...userData,
+      };
+      return updatedUser;
+    }
+    return user;
   });
+
+  res.status(200).send(updatedUser);
 });
 
-app.put("/", (req, res) => {
-  res.status(200).send({
-    method: "put",
-  });
-});
-
-app.delete("/", (req, res) => {
-  res.status(200).send({
-    method: "delete",
-  });
+app.delete("/users/:userId", (req, res) => {
+  const userToDelete = users.find(
+    (user) => user.id === Number(req.params.userId)
+  );
+  users = users.filter((user) => user.id !== Number(req.params.userId));
+  res.status(200).send(userToDelete);
 });
 
 app.listen(3000, () => {
