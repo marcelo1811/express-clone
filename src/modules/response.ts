@@ -32,11 +32,11 @@ class Response implements ServerResponse {
     this.end();
   }
 
-  error(): void {
+  error(message?: string): void {
     this.serverResponse.writeHead(500, {
       "Content-Type": "application/json",
     });
-    this.serverResponse.end("Internal server error");
+    this.serverResponse.end(message || "Internal server error");
   }
 
   private end(): void {

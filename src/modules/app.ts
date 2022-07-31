@@ -21,7 +21,7 @@ export interface RequestListener {
   parameters: RequestListenerParameters;
 }
 
-interface HTTPMethod {
+interface PathListener {
   [path: string]: RequestListener;
 }
 
@@ -31,7 +31,7 @@ interface RouteParameter {
 }
 
 type HTTPListener = {
-  [key in HTTPMethodTypes]: HTTPMethod;
+  [key in HTTPMethodTypes]: PathListener;
 };
 
 type Callback = (req: ServerRequest, res: ServerResponse) => void;
@@ -92,26 +92,32 @@ export default class App implements ServerApp {
     res: http.ServerResponse
   ): void {
     const response = new Response(res);
-
-    const requestData = this.findListenerByRoute(
+    const requestListener = this.findListenerByRoute(
       req.method as HTTPMethodTypes,
       req.url!
     );
 
-    if (!requestData) return;
-    const requestCallback = requestData.callback;
+    if (!requestListener) {
+      response.error("Route not found");
+      return;
+    }
 
+    const requestCallback = requestListener.callback;
     if (!requestCallback) {
       response.error();
       return;
     }
 
-    const request = new Request(req, requestData);
+    const request = new Request(req, requestListener);
 
-    request.readDataStream().then(() => {
-      requestCallback(request, response);
-      return;
-    });
+    request
+      .readDataStream()
+      .then(() => {
+        requestCallback(request, response);
+      })
+      .catch((err) => {
+        response.error(err.message);
+      });
   }
 
   private extractRouteParametersFromPath(fullPath: string): RouteParameter[] {
@@ -135,7 +141,7 @@ export default class App implements ServerApp {
     return parameters;
   }
 
-  private transformPathToRegex(path: string): string {
+  private transformPathToRegexString(path: string): string {
     const parameterRegex = /:\w+/g;
     const pathRegex = path.replace(parameterRegex, "\\w+");
 
@@ -147,9 +153,9 @@ export default class App implements ServerApp {
     path: string,
     callback: Callback
   ): void {
-    const pathRegex = this.transformPathToRegex(path);
+    const pathRegexString = this.transformPathToRegexString(path);
 
-    this.httpListener[method][pathRegex] = {
+    this.httpListener[method][pathRegexString] = {
       callback,
       path,
       parameters: {
