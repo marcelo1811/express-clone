@@ -1,30 +1,23 @@
-import { ListenerData, ParameterFromPath } from "./app";
+import { RequestListener } from "./app";
 import http from "http";
-import { extractSubtPaths } from "../utils/extractSubPaths";
+import { extractSubPathsFromRoute } from "../utils/extractSubPathsFromRoute";
 
-interface RouteParameters {
+interface Params {
   [key: string]: string;
 }
 export interface ServerRequest {
   body: any;
   readDataStream: () => Promise<unknown>;
-  params: RouteParameters;
+  params: Params;
 }
 
-enum ParameterTypes {
-  PATH_PARAMETERS = "fromPath",
-}
-
-export type Parameters = {
-  [key in ParameterTypes]: ParameterFromPath[];
-};
 export default class Request implements ServerRequest {
   body: any;
-  params: RouteParameters = {};
+  params: Params = {};
 
   constructor(
     private serverRequest: http.IncomingMessage,
-    private listenerData: ListenerData
+    private requestListener: RequestListener
   ) {
     this.body = "";
     this.serverRequest.on("data", this.dataListener.bind(this));
@@ -47,10 +40,10 @@ export default class Request implements ServerRequest {
   }
 
   private extractRouteParameters(): void {
-    const subPaths = extractSubtPaths(this.serverRequest.url!);
-    const pathParameters = this.listenerData.parameters.fromPath;
+    const subPaths = extractSubPathsFromRoute(this.serverRequest.url!);
+    const routeParameters = this.requestListener.parameters.routeParameters;
 
-    pathParameters.forEach((parameter) => {
+    routeParameters.forEach((parameter) => {
       this.params[parameter.name] = subPaths[parameter.index];
     });
   }

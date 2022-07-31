@@ -1,9 +1,9 @@
 import http from "http";
-import { extractSubtPaths } from "../utils/extractSubPaths";
-import Request, { Parameters, ServerRequest } from "./request";
+import { extractSubPathsFromRoute } from "../utils/extractSubPathsFromRoute";
+import Request, { ServerRequest } from "./request";
 import Response, { ServerResponse } from "./response";
 
-enum HTTPMethodOptions {
+enum HTTPMethodTypes {
   GET = "GET",
   POST = "POST",
   PUT = "PUT",
@@ -11,23 +11,27 @@ enum HTTPMethodOptions {
   DELETE = "DELETE",
 }
 
-export interface ListenerData {
+type RequestListenerParameters = {
+  routeParameters: RouteParameter[];
+};
+
+export interface RequestListener {
   callback: (req: ServerRequest, res: ServerResponse) => any;
   path: string;
-  parameters: Parameters;
+  parameters: RequestListenerParameters;
 }
 
 interface HTTPMethod {
-  [path: string]: ListenerData;
+  [path: string]: RequestListener;
 }
 
-export interface ParameterFromPath {
+interface RouteParameter {
   name: string;
   index: number;
 }
 
 type HTTPListener = {
-  [key in HTTPMethodOptions]: HTTPMethod;
+  [key in HTTPMethodTypes]: HTTPMethod;
 };
 
 type Callback = (req: ServerRequest, res: ServerResponse) => void;
@@ -35,6 +39,10 @@ type Callback = (req: ServerRequest, res: ServerResponse) => void;
 interface ServerApp {
   listen(port: number, callback?: () => void): void;
   get(path: string, callback: Callback): void;
+  post(path: string, callback: Callback): void;
+  put(path: string, callback: Callback): void;
+  patch(path: string, callback: Callback): void;
+  delete(path: string, callback: Callback): void;
 }
 
 export default class App implements ServerApp {
@@ -60,23 +68,23 @@ export default class App implements ServerApp {
   }
 
   get(path: string, callback: Callback): void {
-    this.addRoute(HTTPMethodOptions.GET, path, callback);
+    this.addRoute(HTTPMethodTypes.GET, path, callback);
   }
 
   post(path: string, callback: Callback): void {
-    this.addRoute(HTTPMethodOptions.POST, path, callback);
+    this.addRoute(HTTPMethodTypes.POST, path, callback);
   }
 
   put(path: string, callback: Callback): void {
-    this.addRoute(HTTPMethodOptions.PUT, path, callback);
+    this.addRoute(HTTPMethodTypes.PUT, path, callback);
   }
 
   patch(path: string, callback: Callback): void {
-    this.addRoute(HTTPMethodOptions.PATCH, path, callback);
+    this.addRoute(HTTPMethodTypes.PATCH, path, callback);
   }
 
   delete(path: string, callback: Callback): void {
-    this.addRoute(HTTPMethodOptions.DELETE, path, callback);
+    this.addRoute(HTTPMethodTypes.DELETE, path, callback);
   }
 
   private requestListener(
@@ -85,8 +93,8 @@ export default class App implements ServerApp {
   ): void {
     const response = new Response(res);
 
-    const requestData = this.findListenerRoute(
-      req.method as HTTPMethodOptions,
+    const requestData = this.findListenerByRoute(
+      req.method as HTTPMethodTypes,
       req.url!
     );
 
@@ -106,14 +114,12 @@ export default class App implements ServerApp {
     });
   }
 
-  private extractRouteParametersFromPath(
-    fullPath: string
-  ): ParameterFromPath[] {
+  private extractRouteParametersFromPath(fullPath: string): RouteParameter[] {
     const [path] = fullPath.split("?");
-    const subPaths = extractSubtPaths(path);
+    const subPaths = extractSubPathsFromRoute(path);
 
     const parameters = subPaths.reduce(
-      (acc: ParameterFromPath[], subPath: string, index: number) => {
+      (acc: RouteParameter[], subPath: string, index: number) => {
         if (subPath.startsWith(":")) {
           const parameterName = subPath.slice(1);
           acc.push({
@@ -137,7 +143,7 @@ export default class App implements ServerApp {
   }
 
   private addRoute(
-    method: HTTPMethodOptions,
+    method: HTTPMethodTypes,
     path: string,
     callback: Callback
   ): void {
@@ -147,15 +153,15 @@ export default class App implements ServerApp {
       callback,
       path,
       parameters: {
-        fromPath: this.extractRouteParametersFromPath(path),
+        routeParameters: this.extractRouteParametersFromPath(path),
       },
     };
   }
 
-  private findListenerRoute(
-    method: HTTPMethodOptions,
+  private findListenerByRoute(
+    method: HTTPMethodTypes,
     url: string
-  ): ListenerData {
+  ): RequestListener {
     const methodPaths = this.httpListener[method];
 
     const foundPath = Object.keys(methodPaths).find((path) => {

@@ -1,12 +1,7 @@
+import { User } from "./types/user.d";
 import App from "./modules/app";
 
 const app = new App();
-
-interface User {
-  id: number;
-  name: string;
-  age: number;
-}
 
 let users: User[] = [
   {

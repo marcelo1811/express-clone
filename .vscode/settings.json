@@ -1,6 +1,3 @@
 {
-  "conventionalCommits.scopes": [
-    "response",
-    "app"
-  ]
+  "conventionalCommits.scopes": ["response", "app", "index", "request", "users"]
 }

@@ -36,9 +36,9 @@ class Response implements ServerResponse {
     this.serverResponse.writeHead(500, {
       "Content-Type": "application/json",
     });
-    this.serverResponse.end('Internal server error');
+    this.serverResponse.end("Internal server error");
   }
-  
+
   private end(): void {
     this.serverResponse.writeHead(this.responseStatus, {
       "Content-Type": "application/json",

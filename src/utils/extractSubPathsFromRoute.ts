@@ -1,4 +1,4 @@
-export function extractSubtPaths(path: string): string[] {
+export function extractSubPathsFromRoute(path: string): string[] {
   const paths = path.split("/");
   const subPaths = paths.filter((path) => path !== "");
   return subPaths;
