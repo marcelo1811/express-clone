@@ -8,11 +8,18 @@ Features implemented
 * App
   * listen
   * get
+  * post
+  * delete
+  * put
+  * patch
 
 * Response
   * status
   * send
 
+* Request
+  * body
+  * params (route parameters)
 
 
 ## Getting Started
