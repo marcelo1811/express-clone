@@ -6,14 +6,14 @@ Simple express clone built using only NodeJs and Typescript, for learning purpos
 ### Features
 The idea of this project was to reproduce the most common features of express. The implemented features are listed below and should be used in the same way as in the express documentation:
 - HTTP Methods
-[x] GET
-[x] POST
-[x] DELETE
-[x] PATCH
-[x] PUT
+- [x] GET
+- [x] POST
+- [x] DELETE
+- [x] PATCH
+- [x] PUT
 - Request Parameters
-[x] Body - [req.body](http://expressjs.com/en/5x/api.html#req.body)
-[x] Route - [req.params](http://expressjs.com/en/5x/api.html#req.params)
+- [x] Body - [req.body](http://expressjs.com/en/5x/api.html#req.body)
+- [x] Route - [req.params](http://expressjs.com/en/5x/api.html#req.params)
 
 ### Example API
 For example purposes I've created a simple CRUD API to manage users. The following endpoints are implemented:
