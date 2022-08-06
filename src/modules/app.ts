@@ -169,10 +169,11 @@ export default class App implements ServerApp {
     url: string
   ): RequestListener {
     const methodPaths = this.httpListener[method];
+    const [baseUrl] = url.split("?");
 
     const foundPath = Object.keys(methodPaths).find((path) => {
       const pathRegex = new RegExp(path);
-      return pathRegex.test(url);
+      return pathRegex.test(baseUrl);
     });
 
     return methodPaths[foundPath!];

@@ -23,8 +23,12 @@ app.get("/users/:userId", (req, res) => {
   res.status(200).send(user);
 });
 
-app.get("/users", (_req, res) => {
-  res.status(200).send(users);
+app.get("/users", (req, res) => {
+  const { name } = req.query;
+  const filteredUsers = users.filter((user) =>
+    user.name.startsWith(name || "")
+  );
+  res.status(200).send(filteredUsers);
 });
 
 app.post("/users", (req, res) => {
